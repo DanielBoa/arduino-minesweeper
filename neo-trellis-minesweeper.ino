@@ -4,6 +4,7 @@
 #define Y_DIM 8
 #define X_DIM 8
 #define NUM_OF_MINES 7
+#define TAP_THRES 400
 
 const int NUM_OF_CELLS = Y_DIM * X_DIM;
 const uint32_t HIDDEN_COLOR = seesaw_NeoPixel::Color(50, 50, 50);
@@ -117,7 +118,7 @@ void cell_hold_callback(struct CellState *cell, long length_of_press_ms) {
 
 void cell_release_callback(struct CellState *cell, long length_of_press_ms) {
   if (!cell->is_hidden) return;
-  if (length_of_press_ms > 200) return;
+  if (length_of_press_ms > TAP_THRES) return;
 
   if (cell->is_mine) {
     for (int i = 0; i < NUM_OF_CELLS; i++) {
