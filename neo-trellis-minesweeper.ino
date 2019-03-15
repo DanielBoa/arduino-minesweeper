@@ -125,16 +125,37 @@ void cell_hold_callback(struct CellState *cell, long length_of_press_ms) {
 }
 
 void cell_release_callback(struct CellState *cell, long length_of_press_ms) {
-  if (!cell->is_hidden) return;
   if (length_of_press_ms > TAP_THRES) return;
 
-  check_fail_state(cell);
+  if (!cell->is_hidden && cell->count > 0) {
+    for (int y_offset = -1; y_offset < 2; y_offset++) {
+      int y = cell->y + y_offset;
 
-  recursively_reveal_cells(cell);
+      if ((y < 0) || (y > (Y_DIM - 1))) continue;
+
+      for (int x_offset = -1; x_offset < 2; x_offset++) {
+        int x = cell->x + x_offset;
+
+        if ((x < 0) || (x > (X_DIM - 1))) continue;
+        if ((y == cell->y) && (x == cell->x)) continue;
+
+        struct CellState *neighbour = &cells[coord_to_index(x, y)];
+
+        if (!neighbour->is_hidden) continue;
+        if (neighbour->is_mine && neighbour->is_flagged) continue;
+     
+        if (neighbour->count == 0) recursively_reveal_cells(neighbour);
+
+        neighbour->is_hidden = false;
+      }
+    }
+  } else {
+    recursively_reveal_cells(cell);
+  }
 }
 
 void recursively_reveal_cells(struct CellState *cell) {
-  if (!cell->is_hidden || cell->is_mine) return;
+  if (!cell->is_hidden) return;
 
   cell->is_hidden = false;
 
@@ -154,7 +175,6 @@ void recursively_reveal_cells(struct CellState *cell) {
       struct CellState *neighbour = &cells[coord_to_index(x, y)];
 
       if (!neighbour->is_hidden) continue;
-      if (neighbour->is_mine) continue;
    
       if (neighbour->count == 0) recursively_reveal_cells(neighbour);
 
@@ -163,8 +183,19 @@ void recursively_reveal_cells(struct CellState *cell) {
   }
 }
 
-void check_fail_state(struct CellState *cell) {
-  if (cell->is_mine) {
+void check_fail_state() {
+  bool game_over = false;
+
+  for (int i = 0; i < NUM_OF_CELLS; i++) {
+    struct CellState *cell = &cells[i];
+
+    if (cell->is_mine && !cell->is_hidden) {
+      game_over = true;
+      break;
+    }
+  }
+  
+  if (game_over) {
     bool first_wipe = true;
     while (true) {
       for (int y = 0; y < Y_DIM; y++) {
@@ -322,6 +353,7 @@ void loop() {
     cell_hold_callback(cell_being_pressed, millis() - pressed_down_time);
   }
   
+  // render the state of the board
   for (int i = 0; i < NUM_OF_CELLS; i++) {
     if (cells[i].is_flagged && flash_mine && !cells_equal(&cells[i], cell_being_pressed)) {
       trellis.setPixelColor(cells[i].x, cells[i].y, HIDDEN_COLOR);
@@ -329,6 +361,8 @@ void loop() {
       trellis.setPixelColor(cells[i].x, cells[i].y, get_cell_color(&cells[i]));
     }
   }
+
+  check_fail_state();
 
   check_complete_state();
 

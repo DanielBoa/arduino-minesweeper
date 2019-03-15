@@ -23,7 +23,7 @@ Instead of numbers being used to represent the number of bombs in neighbouring c
 
 * Tap a cell to reveal it
 * Hold a cell and release to flag/unflag
-* ~Tap a coloured cell to clear all it's neighbours~ _(TODO)_
+* Tap a coloured cell to clear all it's neighbours
 
 ## Dependencies
 
@@ -34,13 +34,13 @@ Instead of numbers being used to represent the number of bombs in neighbouring c
 * Refactor to use OOP?
   * Code is currently a bit of a mess
   * Would be nice to have rendering logic etc. contained within a class so that more complex visual state could be held. I'm thinking pulsing colours.
+  * Create reusable iterator logic for neighbours
 * Difficulty selection
 * Restart without hard reset
 * Sound
 * Choose better colours
   * Colours for 1, 2, & 3 are okay, but the others aren't great.
-* Press a coloured square to clear neighbours
-  * This would result in a gameover if a hidden neighbour is a bomb
+* ~Press a coloured square to clear neighbours~
 * Explosion animation?
 * Timed mode?
   * Have the board (or maybe just flags) flash faster to indicate time left
