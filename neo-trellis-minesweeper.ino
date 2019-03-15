@@ -121,17 +121,7 @@ void cell_release_callback(struct CellState *cell, long length_of_press_ms) {
   if (!cell->is_hidden) return;
   if (length_of_press_ms > TAP_THRES) return;
 
-  if (cell->is_mine) {
-    for (int i = 0; i < NUM_OF_CELLS; i++) {
-      trellis.setPixelColor(i, MINE_COLOR);
-    }
-
-    trellis.show();
-
-    delay(1000);
-
-    return;
-  }
+  check_fail_state(cell);
 
   recursively_reveal_cells(cell);
 }
@@ -162,6 +152,30 @@ void recursively_reveal_cells(struct CellState *cell) {
       if (neighbour->count == 0) recursively_reveal_cells(neighbour);
 
       neighbour->is_hidden = false;
+    }
+  }
+}
+
+void check_fail_state(struct CellState *cell) {
+  if (cell->is_mine) {
+    bool first_wipe = true;
+    while (true) {
+      for (int i = 0; i < NUM_OF_CELLS; i++) {
+        int tail = i - NUM_OF_CELLS / 2;
+
+        if (tail >= 0) {
+          trellis.setPixelColor(tail, CLEARED_COLOR);
+        } else if (!first_wipe) {
+          tail = NUM_OF_CELLS + tail;
+          trellis.setPixelColor(tail, CLEARED_COLOR);
+        }
+
+        trellis.setPixelColor(i, MINE_COLOR);
+        trellis.show();
+        delay(50);
+      }
+
+      first_wipe = false;
     }
   }
 }
