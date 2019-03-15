@@ -203,14 +203,11 @@ void check_complete_state() {
   }
 
   if (hidden_remaining == NUM_OF_MINES) {
-    delay(1000);
-
     for (int i = 0; i < NUM_OF_CELLS; i++) {
       trellis.setPixelColor(i, GREEN_COLOR);
       trellis.show();
       delay(10);
     }
-
   
     while (true) {
       for (int i = 0; i < NUM_OF_CELLS; i++) {
@@ -336,6 +333,4 @@ void loop() {
   check_complete_state();
 
   trellis.show();
-
-  // delay(0);
 }
