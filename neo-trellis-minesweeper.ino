@@ -160,19 +160,25 @@ void check_fail_state(struct CellState *cell) {
   if (cell->is_mine) {
     bool first_wipe = true;
     while (true) {
-      for (int i = 0; i < NUM_OF_CELLS; i++) {
-        int tail = i - NUM_OF_CELLS / 2;
+      for (int y = 0; y < Y_DIM; y++) {
+        int tail_y = y - (Y_DIM / 2);
 
-        if (tail >= 0) {
-          trellis.setPixelColor(tail, CLEARED_COLOR);
+        if (tail_y >= 0) {
+          for (int x = 0; x < X_DIM; x++) {
+            trellis.setPixelColor(x, tail_y, CLEARED_COLOR);
+          }
         } else if (!first_wipe) {
-          tail = NUM_OF_CELLS + tail;
-          trellis.setPixelColor(tail, CLEARED_COLOR);
+          for (int x = 0; x < X_DIM; x++) {
+            trellis.setPixelColor(x, Y_DIM + tail_y, CLEARED_COLOR);
+          }
         }
 
-        trellis.setPixelColor(i, MINE_COLOR);
+        for (int x = 0; x < X_DIM; x++) {
+          trellis.setPixelColor(x, y, MINE_COLOR);
+        }
+
         trellis.show();
-        delay(50);
+        delay(100);
       }
 
       first_wipe = false;
