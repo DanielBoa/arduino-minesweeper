@@ -35,6 +35,7 @@ bool is_pressing_down = false;
 struct CellState *cell_being_pressed;
 long pressed_down_time;
 long time_started = millis();
+bool first_press = true;
 
 // create a matrix of trellis panels
 Adafruit_NeoTrellis t_array[Y_DIM/4][X_DIM/4] = {
@@ -54,6 +55,12 @@ int coord_to_index(int x, int y) {
 //define a callback for key presses
 TrellisCallback trellis_callback(keyEvent evt){
   struct CellState *cell = &cells[evt.bit.NUM];
+
+  if (first_press) {
+    seed_board(cell);
+
+    first_press = false;
+  }
 
   if (is_pressing_down && evt.bit.NUM != coord_to_index(cell_being_pressed->x, cell_being_pressed->y)) return 0;
   
@@ -224,33 +231,7 @@ void check_complete_state() {
 
 }
 
-void setup() {
-  Serial.begin(9600);
-
-  pinMode(INT_PIN, INPUT);
-
-  randomSeed(analogRead(0));
-
-  if (!trellis.begin()) {
-    Serial.println("failed to begin trellis");
-    while(1);
-  }
-
-  // init cells
-  for (int y = 0; y < Y_DIM; y++) {
-    for (int x = 0; x < X_DIM; x++) {
-      struct CellState cell;
-
-      cell.x = x;
-      cell.y = y;
-      cell.is_mine = false;
-      cell.is_flagged = false;
-      cell.is_hidden = false; // set after init
-
-      cells[coord_to_index(x, y)] = cell;
-    }
-  }
-
+void seed_board(struct CellState *pressed_cell) {
   // place mines
   int num_of_mines_to_place = NUM_OF_MINES;  
   while(num_of_mines_to_place > 0) {
@@ -258,7 +239,7 @@ void setup() {
     int y = random(0, Y_DIM);
     CellState *cell = &cells[coord_to_index(x, y)];
 
-    if (!cell->is_mine) {
+    if (!cell->is_mine && !cells_equal(cell, pressed_cell)) {
       cell->is_mine = true;
       num_of_mines_to_place--;
     }
@@ -287,6 +268,34 @@ void setup() {
     }
 
     cell->count = mines;
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(INT_PIN, INPUT);
+
+  randomSeed(analogRead(0));
+
+  if (!trellis.begin()) {
+    Serial.println("failed to begin trellis");
+    while(1);
+  }
+
+  // init cells
+  for (int y = 0; y < Y_DIM; y++) {
+    for (int x = 0; x < X_DIM; x++) {
+      struct CellState cell;
+
+      cell.x = x;
+      cell.y = y;
+      cell.is_mine = false; // set after first cell reveal
+      cell.is_flagged = false;
+      cell.is_hidden = false;
+
+      cells[coord_to_index(x, y)] = cell;
+    }
   }
 
   // enable callbacks etc.
