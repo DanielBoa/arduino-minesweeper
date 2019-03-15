@@ -272,22 +272,13 @@ void setup() {
   // enable callbacks etc.
   for (int i = 0; i < NUM_OF_CELLS; i++) {
     struct CellState *cell = &cells[i];
+
+    cell->is_hidden = true;
+
     trellis.activateKey(cell->x, cell->y, SEESAW_KEYPAD_EDGE_RISING, true);
     trellis.activateKey(cell->x, cell->y, SEESAW_KEYPAD_EDGE_FALLING, true);
     trellis.registerCallback(cell->x, cell->y, trellis_callback);
     trellis.setPixelColor(cell->x, cell->y, get_cell_color(cell));
-
-    trellis.show();
-
-    delay(5);
-  }
-
-  delay(1000);
-
-  for (int i = 0; i < NUM_OF_CELLS; i++) {
-    struct CellState *cell = &cells[i];
-
-    cell->is_hidden = true;
   }
 }
 
