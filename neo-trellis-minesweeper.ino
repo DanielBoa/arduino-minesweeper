@@ -3,8 +3,9 @@
 #define INT_PIN 10
 #define Y_DIM 8
 #define X_DIM 8
-#define NUM_OF_MINES 7
-#define TAP_THRES 400
+#define NUM_OF_MINES 11
+#define TAP_THRES 500
+#define HOLD_THRES 500
 
 const int NUM_OF_CELLS = Y_DIM * X_DIM;
 const uint32_t HIDDEN_COLOR = seesaw_NeoPixel::Color(50, 50, 50);
@@ -13,11 +14,11 @@ const uint32_t FLAG_COLOR = seesaw_NeoPixel::Color(255, 0, 0);
 const uint32_t CLEARED_COLOR = seesaw_NeoPixel::Color(0, 0, 0);
 const uint32_t BLUE_COLOR = seesaw_NeoPixel::Color(0, 0, 255);
 const uint32_t GREEN_COLOR = seesaw_NeoPixel::Color(0, 255, 0);
-const uint32_t YELLOW_COLOR = seesaw_NeoPixel::Color(240, 240, 25);
-const uint32_t DARK_BLUE_COLOR = seesaw_NeoPixel::Color(25, 25, 125);
-const uint32_t BROWN_COLOR = seesaw_NeoPixel::Color(100, 60, 20);
-const uint32_t CYAN_COLOR = seesaw_NeoPixel::Color(10, 240, 240);
 const uint32_t PINK_COLOR = seesaw_NeoPixel::Color(240, 10, 240);
+const uint32_t CYAN_COLOR = seesaw_NeoPixel::Color(10, 240, 240);
+const uint32_t BROWN_COLOR = seesaw_NeoPixel::Color(100, 60, 20);
+const uint32_t DARK_BLUE_COLOR = seesaw_NeoPixel::Color(25, 25, 125);
+const uint32_t YELLOW_COLOR = seesaw_NeoPixel::Color(240, 240, 25);
 const uint32_t RED_COLOR = seesaw_NeoPixel::Color(255, 0, 0);
 
 struct CellState {
@@ -83,15 +84,15 @@ uint32_t get_cell_color(struct CellState *cell) {
   } else if (cell->count == 2) {
     return GREEN_COLOR;
   } else if (cell->count == 3) {
-    return YELLOW_COLOR;
+    return PINK_COLOR;
   } else if (cell->count == 4) {
-    return DARK_BLUE_COLOR;
+    return CYAN_COLOR;
   } else if (cell->count == 5) {
     return BROWN_COLOR;
   } else if (cell->count == 6) {
-    return CYAN_COLOR;
+    return DARK_BLUE_COLOR;
   } else if (cell->count == 7) {
-    return PINK_COLOR;
+    return YELLOW_COLOR;
   } else if (cell->count == 8) {
     return RED_COLOR;
   } else {
@@ -106,7 +107,7 @@ bool cells_equal(struct CellState *a, struct CellState *b) {
 void cell_hold_callback(struct CellState *cell, long length_of_press_ms) {
   if (!cell->is_hidden) return;
 
-  long seconds = length_of_press_ms / 1000;
+  long seconds = length_of_press_ms / HOLD_THRES;
   int seconds_rounded = abs(seconds);
 
   if (seconds_rounded % 2 == 0) {
@@ -165,10 +166,50 @@ void recursively_reveal_cells(struct CellState *cell) {
   }
 }
 
+void check_complete_state() {
+  int hidden_remaining = 0;
+
+  for (int i = 0; i < NUM_OF_CELLS; i++) {
+    if (cells[i].is_hidden) {
+      hidden_remaining++;
+    }
+  }
+
+  if (hidden_remaining == NUM_OF_MINES) {
+    delay(1000);
+
+    for (int i = 0; i < NUM_OF_CELLS; i++) {
+      trellis.setPixelColor(i, GREEN_COLOR);
+      trellis.show();
+      delay(10);
+    }
+
+  
+    while (true) {
+      for (int i = 0; i < NUM_OF_CELLS; i++) {
+        trellis.setPixelColor(i, CLEARED_COLOR);
+      }
+
+      trellis.show();
+      delay(500);
+
+      for (int i = 0; i < NUM_OF_CELLS; i++) {
+        trellis.setPixelColor(i, GREEN_COLOR);
+      }
+
+      trellis.show();
+      delay(500);
+    }
+  }
+
+}
+
 void setup() {
   Serial.begin(9600);
 
   pinMode(INT_PIN, INPUT);
+
+  randomSeed(analogRead(0));
 
   if (!trellis.begin()) {
     Serial.println("failed to begin trellis");
@@ -272,7 +313,9 @@ void loop() {
     }
   }
 
+  check_complete_state();
+
   trellis.show();
 
-  delay(20);
+  // delay(0);
 }
