@@ -23,8 +23,6 @@ Instead of numbers being used to represent the number of bombs in neighbouring c
 
 * Tap a cell to reveal it
 * Hold a cell and release to flag/unflag
-  * Release when red to flag
-  * Flags flash red
 * ~Tap a coloured cell to clear all it's neighbours~ _(TODO)_
 
 ## Dependencies
